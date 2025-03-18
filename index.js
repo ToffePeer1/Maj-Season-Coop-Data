@@ -33,7 +33,6 @@ async function main() {
 		console.log(`Total contracts: ${allContracts.length}`);
 
 		// Get seasonal contracts
-
 		const seasonalContracts = await getSeasonalContracts(
 			startingSeason,
 			endingSeason,
@@ -61,18 +60,97 @@ async function main() {
 		);
 		console.log(`Contract list written to ${contractListPath}`);
 
-		// Write the coops to coopListPath, if the file does not exist, it will be created
-
+		// Write the coops to coopListPath
 		fs.writeFileSync(coopListPath, JSON.stringify(coops, null, 2));
 		console.log(`Coop list written to ${coopListPath}`);
 
+		// Create or read the existing coops array
+		let existingCoops = [];
+		try {
+			// Check if the file exists and has valid content
+			if (fs.existsSync(coopsPath)) {
+				const fileContent = fs.readFileSync(coopsPath, 'utf8');
+				if (fileContent.trim()) {
+					existingCoops = JSON.parse(fileContent);
+					console.log(`Loaded ${existingCoops.length} existing coops from ${coopsPath}`);
+				} else {
+					console.log(`${coopsPath} exists but is empty. Starting with an empty array.`);
+				}
+			} else {
+				console.log(`${coopsPath} does not exist. Starting with an empty array.`);
+			}
+		} catch (error) {
+			console.error(`Error reading existing coops from ${coopsPath}:`, error);
+			console.log("Starting with an empty array.");
+		}
 
+		// For testing, just process the first coop of the first contract
+		if (coops.length > 0 && coops[0].coops && coops[0].coops.length > 0) {
+			const testMajCoop = coops[0];
+			const testCoop = testMajCoop.coops[0];
+			
+			console.log(`Testing with contract: ${testMajCoop.contract}, coop: ${testCoop.code}`);
+			
+			// Get the contract data
+			const contractData = seasonalContracts.find(c => c.contractIdentifier === testMajCoop.contract);
+			if (!contractData) {
+				throw new Error(`Contract data not found for ${testMajCoop.contract}`);
+			}
+			
+			// Get the coop data
+			const eggCoopCoop = await getEggCoopCoop(testMajCoop.contract, testCoop.code);
+			
+			// Process the coop
+			const processedCoop = await handleCoop(eggCoopCoop, contractData, testMajCoop);
+			
+			// Add the processed coop to the array
+			existingCoops.push(processedCoop);
+			
+			// Write the updated array back to the file
+			fs.writeFileSync(coopsPath, JSON.stringify(existingCoops, null, 2));
+			console.log(`Added 1 coop to ${coopsPath}. Total coops: ${existingCoops.length}`);
+		} else {
+			console.log("No coops available for testing");
+		}
+
+		/* 
+		// Uncomment this section to process all coops
+		// Initialize an array to hold all processed coops
+		const processedCoops = [];
+		
+		// Process each coop
+		let processedCount = 0;
 		for (const majCoopsObject of coops) {
+			// Find the contract data for this coop
+			const contractData = seasonalContracts.find(c => c.contractIdentifier === majCoopsObject.contract);
+			if (!contractData) {
+				console.warn(`Contract data not found for ${majCoopsObject.contract}, skipping`);
+				continue;
+			}
+			
 			for (const coop of majCoopsObject.coops) {
-				const eggCoopCoop = getEggCoopCoop(majCoopsObject.contract, coop.code)
-				const fullCoopData = await handleCoop(eggCoopCoop, majCoopsObject.contract, majCoopsObject);
+				try {
+					const eggCoopCoop = await getEggCoopCoop(majCoopsObject.contract, coop.code);
+					const fullCoopData = await handleCoop(eggCoopCoop, contractData, majCoopsObject);
+					processedCoops.push(fullCoopData);
+					processedCount++;
+					
+					// Optional: Add a delay between API calls to avoid rate limiting
+					// await new Promise(resolve => setTimeout(resolve, 100));
+				} catch (error) {
+					console.error(`Error processing coop ${coop.code} for contract ${majCoopsObject.contract}:`, error);
+				}
 			}
 		}
+		
+		// Combine with existing coops
+		const combinedCoops = [...existingCoops, ...processedCoops];
+		
+		// Write all processed coops to the output file
+		fs.writeFileSync(coopsPath, JSON.stringify(combinedCoops, null, 2));
+		console.log(`Added ${processedCount} coops to ${coopsPath}. Total coops: ${combinedCoops.length}`);
+		*/
+
 	} catch (error) {
 		console.error("Error:", error);
 	}
@@ -271,7 +349,7 @@ async function handleCoop(eggCoopCoop, contract, majCoopCoop) {
                     contributionFactor,
                     completionTimeBonus,
                     timeToCompleteFactor,
-					greenScroll,
+                    greenScroll,
                     buffValue,
                     teamWork,
                     upperTeamWork,
@@ -291,7 +369,7 @@ async function handleCoop(eggCoopCoop, contract, majCoopCoop) {
                     contributionFactor: 0,
                     completionTimeBonus: 1,
                     timeToCompleteFactor: 1,
-					greenScroll,
+                    greenScroll,
                     buffValue: 0,
                     teamWork: 1,
                     upperTeamWork: 1,

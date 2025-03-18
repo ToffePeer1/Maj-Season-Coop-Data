@@ -1,4 +1,4 @@
-const eggCoopBaseURL = "https://eggcoop.org/api";
+const eggCoopBaseURL = "https://eggcoop.org/api/contracts";
 
 /**
  * Gets sorted list of contracts from EggCoop API
@@ -7,6 +7,7 @@ const eggCoopBaseURL = "https://eggcoop.org/api";
  */
 async function getEggCoopContractsList() {
 	const contracts = await fetchEggCoopAPI(`/contracts`);
+	console.log(contracts);
 	const contractsSorted = contracts.sort((a, b) => {
 		const dateA = new Date(a.startTime);
 		const dateB = new Date(b.startTime);
@@ -34,7 +35,7 @@ async function fetchEggCoopAPI(path) {
 		const response = await fetch(eggCoopBaseURL + path, params);
 		return await response.json();
 	} catch (error) {
-		throw new Error(`Failed to fetch URL: ${url}`);
+		throw new Error(`Failed to fetch path: ${path}: ${error.message}`);
 	}
 }
 
