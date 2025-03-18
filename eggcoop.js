@@ -129,30 +129,31 @@ async function getSeasonalContracts(
  * @param {string} kevID - The contract identifier
  * @param {string} coopCode - The coop's code
  * @param {boolean} [includeBuffHistory=false] - Whether to include buff history for every contributor.
+ * @param {number} [buffHistoryDelay=100] - Delay between buff history requests in ms.
  * @returns {Promise<EggCoop.Coop>} The coop data with latest status
  * @throws {Error} If fetching the coop data fails
  */
-async function getEggCoopCoop(kevID, coopCode, includeBuffHistory = false) {
-	const url = `/coops/${kevID}/${coopCode}/statuses/latest`;
-	try {
-		let coop = await fetchEggCoopAPI(url);
-		if (includeBuffHistory) {
-			coop = await addBuffHistory(coop);
-		}
-		return coop;
-	} catch (error) {
-		console.error(`Error fetching coop data: ${error.message}`);
-		return {
-			// In case of error return an empty yet still valid objet.
-			status: "error",
-			message: error.message,
-			contract: kevID,
-			coop: coopCode,
-			contractIdentifier: kevID,
-			coopContributors: [],
-			totalAmount: 0,
-		};
-	}
+async function getEggCoopCoop(kevID, coopCode, includeBuffHistory = false, buffHistoryDelay = 100) {
+    const url = `/coops/${kevID}/${coopCode}/statuses/latest`;
+    try {
+        let coop = await fetchEggCoopAPI(url);
+        if (includeBuffHistory) {
+            coop = await addBuffHistory(coop, buffHistoryDelay);
+        }
+        return coop;
+    } catch (error) {
+        console.error(`Error fetching coop data: ${error.message}`);
+        return {
+            // In case of error return an empty yet still valid object.
+            status: "error",
+            message: error.message,
+            contract: kevID,
+            coop: coopCode,
+            contractIdentifier: kevID,
+            coopContributors: [],
+            totalAmount: 0,
+        };
+    }
 }
 
 /**
