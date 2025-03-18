@@ -59,7 +59,11 @@ The tool will show a progress bar and estimated completion time as it works. It 
 
 - `files/contractList.json` - List of contracts in the selected seasons
 - `files/coopList.json` - List of cooperatives for these contracts
-- `files/coops.json` - Detailed data including player contributions and calculated metrics
+- `files/coops.json` - Detailed data including player contributions and calculated metrics. Saved here are:
+  - The latest coop status saved by EggCoop.
+  - The contract information from EggCoop.
+  - The coop information from the Wonky endpoint.
+  - Calculated fields per user from the EggCoop API, like estimated minimal and maximal CS (assuming minimal and maximal TVal and CR)
 
 ## Key Metrics
 
@@ -74,12 +78,14 @@ I calculate several performance metrics for each player:
 
 - **index.js**: Main script that coordinates the whole process
 - **eggcoop.js**: Functions for interacting with the EggCoop API
-- **maj.js**: Functions for retrieving cooperative data
+- **maj.js**: Functions for retrieving coop codes and information from the Wonky endpoint
 - **tools.js**: Utility functions for calculations and data processing
 
 ## Rate Limiting
 
-I've built in rate limiting to be respectful to the APIs. You can adjust these settings in `index.js`:
+I've built in rate limiting to be respectful to the APIs, mainly EggCoop. Please respect these these services.
+
+You can adjust these settings in `index.js`:
 
 ```javascript
 const remainingProcessedCoops = await processCoopsWithRateLimiting(
@@ -102,4 +108,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-Thanks to the EggCoop API for providing access to the contract data. Special thanks to "the kind Whale" mentioned in the code comments for the coop duration calculation function.
+Thanks to the EggCoop API for providing the coop information. 
+
+Thanks to Whale for the initial function of calculating coop duration.

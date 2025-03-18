@@ -21,8 +21,12 @@ require("dotenv").config();
 
 // Define these two variables to filter the contracts
 // The starting season is inclusive, the ending season is exclusive
+// If no occurrence of endingSeason is found, every contract after startingSeason is used
 const startingSeason = "winter_2025";
 const endingSeason = "spring_2025";
+
+// False means all contracts are included, true means only seasonal contracts are included
+const seasonalContractsOnly = false;
 
 // Whether or not to clear the coops file before writing new coops
 const clearCoopsFile = true;
@@ -81,7 +85,7 @@ async function processCoopsWithRateLimiting(
 	// Count total number of coops for progress reporting
 	coops.forEach((majCoopsObject) => {
 		totalCoopCount += majCoopsObject.coops.length;
-		
+
 		// Count users in each coop
 		majCoopsObject.coops.forEach((coop) => {
 			totalUserCount += coop.users.length;
@@ -242,6 +246,7 @@ async function main() {
 		const seasonalContracts = await getSeasonalContracts(
 			startingSeason,
 			endingSeason,
+			seasonalContractsOnly,
 			true
 		);
 		console.log(

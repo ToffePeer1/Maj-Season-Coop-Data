@@ -58,6 +58,7 @@ async function fetchEggCoopAPI(path) {
  * Gets contracts between two seasons
  * @param {string} startSeasonId - Season ID to start from (e.g. "winter_2025")
  * @param {string} endSeasonId - Season ID to end at (e.g. "spring_2025")
+ * @param {boolean} [seasonalOnly=false] - Whether to include only seasonal contracts, or all contracts in between given seasons
  * @param {boolean} [verbose=false] - Whether to log info to console
  * @returns {Promise<EggCoop.Contract[]>} Array of contracts between the specified seasons
  * @throws {Error} If fetching the contracts fails
@@ -65,6 +66,7 @@ async function fetchEggCoopAPI(path) {
 async function getSeasonalContracts(
 	startSeasonId,
 	endSeasonId,
+	seasonalOnly = false,
 	verbose = false
 ) {
 	const sortedContracts = await getEggCoopContractsList();
@@ -93,25 +95,31 @@ async function getSeasonalContracts(
 
 	// Filter contracts that start within the boundaries
 	for (const contract of sortedContracts) {
-		const contractStartTime = new Date(contract.startTime);
-
-		// Check if contract starts after our season start time
-		if (seasonStartTime && contractStartTime >= seasonStartTime) {
-			// Check if either there's no end time yet OR contract starts before end time
-			if (!seasonEndTime || contractStartTime < seasonEndTime) {
+		if (seasonalOnly) {
+			if (contract.season.eiSeasonId == startSeasonId) {
 				seasonalContracts.push(contract);
+			}
+		} else {
+			const contractStartTime = new Date(contract.startTime);
+
+			// Check if contract starts after our season start time
+			if (seasonStartTime && contractStartTime >= seasonStartTime) {
+				// Check if either there's no end time yet OR contract starts before end time
+				if (!seasonEndTime || contractStartTime < seasonEndTime) {
+					seasonalContracts.push(contract);
+				}
 			}
 		}
 	}
 
 	if (verbose) {
-		console.log(`Found ${seasonalContracts.length} seasonal contracts`);
+		console.log(`Found ${seasonalContracts.length}${seasonalOnly? " seasonal" : ""} contracts`);
 		if (seasonalContracts.length > 0) {
 			console.log(
-				`First seasonal contract: ${seasonalContracts[0].contractIdentifier}, starts at ${seasonalContracts[0].startTime}`
+				`First${seasonalOnly? " seasonal" : ""} contract: ${seasonalContracts[0].contractIdentifier}, starts at ${seasonalContracts[0].startTime}`
 			);
 			console.log(
-				`Last seasonal contract: ${
+				`Last${seasonalOnly? " seasonal" : ""} contract: ${
 					seasonalContracts[seasonalContracts.length - 1]
 						.contractIdentifier
 				}, starts at ${
