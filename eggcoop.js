@@ -225,7 +225,6 @@ async function addBuffHistory(eggCoopCoop, delayMs = 100) {
 		// Process each contributor to add their buff history
 		for (let i = 0; i < eggCoopCoop.coopContributors.length; i++) {
 			const user = eggCoopCoop.coopContributors[i];
-			console.log(`\nFetching buff history for user ${user.userName}`);
 			let buffHistory = [];
 			try {
 				// Check if the contributor has a valid eiUuid

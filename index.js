@@ -58,7 +58,7 @@ async function processCoopsWithRateLimiting(
 		maxParallel = 3,
 		requestDelay = 500,
 		batchDelay = 2000,
-		includeBuffHistory = false,
+		includeBuffHistory = true,
 		buffHistoryDelay = 300,
 	} = options;
 
@@ -75,14 +75,21 @@ async function processCoopsWithRateLimiting(
 	const processedCoops = [];
 	let processedCount = 0;
 	let totalCoopCount = 0;
+	let totalUserCount = 0;
 	let saveCounter = 0;
 
 	// Count total number of coops for progress reporting
 	coops.forEach((majCoopsObject) => {
 		totalCoopCount += majCoopsObject.coops.length;
+		
+		// Count users in each coop
+		majCoopsObject.coops.forEach((coop) => {
+			totalUserCount += coop.users.length;
+		});
 	});
 
 	console.log(`Total coops to process: ${totalCoopCount}`);
+	console.log(`Total users: ${totalUserCount}`);
 
 	// Initialize timing variables for ETA calculation
 	const startTime = Date.now();
@@ -106,7 +113,7 @@ async function processCoopsWithRateLimiting(
 
 		const progressText = `${progressBar(
 			percent
-		)} ${current}/${totalCoopCount} | ETA: ${formatTime(
+		)} ${current}/${totalCoopCount} coops | ETA: ${formatTime(
 			estimatedRemainingSeconds
 		)}`;
 		clearLine();
