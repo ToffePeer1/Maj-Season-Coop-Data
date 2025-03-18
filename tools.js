@@ -262,14 +262,14 @@ function convertGrade(
 /**
  * Calculates the contribution factor based on the given contribution ratio.
  * 
- * @param {number} conRatio - The contribution ratio.
+ * @param {number} contributionRatio - The contribution ratio.
  * @return {number} The calculated contribution factor.
  */
 function calculateContributionFactor(contributionRatio) {
-    if (conRatio <= 2.5) {
-      return 3 * Math.pow(conRatio, 0.15) + 1;
+    if (contributionRatio <= 2.5) {
+      return 3 * Math.pow(contributionRatio, 0.15) + 1;
     } else {
-      return 0.02221 * Math.min(conRatio, 12.5) + 4.386486;
+      return 0.02221 * Math.min(contributionRatio, 12.5) + 4.386486;
     }
   }
 

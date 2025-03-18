@@ -84,36 +84,7 @@ async function main() {
 			console.log("Starting with an empty array.");
 		}
 
-		// For testing, just process the first coop of the first contract
-		if (coops.length > 0 && coops[0].coops && coops[0].coops.length > 0) {
-			const testMajCoop = coops[0];
-			const testCoop = testMajCoop.coops[0];
-			
-			console.log(`Testing with contract: ${testMajCoop.contract}, coop: ${testCoop.code}`);
-			
-			// Get the contract data
-			const contractData = seasonalContracts.find(c => c.contractIdentifier === testMajCoop.contract);
-			if (!contractData) {
-				throw new Error(`Contract data not found for ${testMajCoop.contract}`);
-			}
-			
-			// Get the coop data
-			const eggCoopCoop = await getEggCoopCoop(testMajCoop.contract, testCoop.code);
-			
-			// Process the coop
-			const processedCoop = await handleCoop(eggCoopCoop, contractData, testMajCoop);
-			
-			// Add the processed coop to the array
-			existingCoops.push(processedCoop);
-			
-			// Write the updated array back to the file
-			fs.writeFileSync(coopsPath, JSON.stringify(existingCoops, null, 2));
-			console.log(`Added 1 coop to ${coopsPath}. Total coops: ${existingCoops.length}`);
-		} else {
-			console.log("No coops available for testing");
-		}
-
-		/* 
+		
 		// Uncomment this section to process all coops
 		// Initialize an array to hold all processed coops
 		const processedCoops = [];
@@ -131,7 +102,7 @@ async function main() {
 			for (const coop of majCoopsObject.coops) {
 				try {
 					const eggCoopCoop = await getEggCoopCoop(majCoopsObject.contract, coop.code);
-					const fullCoopData = await handleCoop(eggCoopCoop, contractData, majCoopsObject);
+					const fullCoopData = await handleCoop(eggCoopCoop, contractData, coop);
 					processedCoops.push(fullCoopData);
 					processedCount++;
 					
@@ -149,7 +120,7 @@ async function main() {
 		// Write all processed coops to the output file
 		fs.writeFileSync(coopsPath, JSON.stringify(combinedCoops, null, 2));
 		console.log(`Added ${processedCount} coops to ${coopsPath}. Total coops: ${combinedCoops.length}`);
-		*/
+		
 
 	} catch (error) {
 		console.error("Error:", error);
@@ -276,10 +247,11 @@ async function handleCoop(eggCoopCoop, contract, majCoopCoop) {
                 }
 
                 // Calculate buff value
+				const buffHistory = user.buffHistory || [];
                 let buffValue;
                 try {
                     buffValue = calculateBuffTimeValue(
-                        user.buffHistory || [],
+                        buffHistory,
                         eggCoopCoop.secondsSinceAllGoalsAchieved || 0
                     );
                 } catch (buffError) {
@@ -350,6 +322,7 @@ async function handleCoop(eggCoopCoop, contract, majCoopCoop) {
                     completionTimeBonus,
                     timeToCompleteFactor,
                     greenScroll,
+					buffHistory,
                     buffValue,
                     teamWork,
                     upperTeamWork,
@@ -370,6 +343,7 @@ async function handleCoop(eggCoopCoop, contract, majCoopCoop) {
                     completionTimeBonus: 1,
                     timeToCompleteFactor: 1,
                     greenScroll,
+					buffHistory: [],
                     buffValue: 0,
                     teamWork: 1,
                     upperTeamWork: 1,

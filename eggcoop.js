@@ -1,4 +1,4 @@
-const eggCoopBaseURL = "https://eggcoop.org/api/contracts";
+const eggCoopBaseURL = "https://eggcoop.org";
 
 /**
  * Gets sorted list of contracts from EggCoop API
@@ -7,7 +7,6 @@ const eggCoopBaseURL = "https://eggcoop.org/api/contracts";
  */
 async function getEggCoopContractsList() {
 	const contracts = await fetchEggCoopAPI(`/contracts`);
-	console.log(contracts);
 	const contractsSorted = contracts.sort((a, b) => {
 		const dateA = new Date(a.startTime);
 		const dateB = new Date(b.startTime);
@@ -19,24 +18,40 @@ async function getEggCoopContractsList() {
 }
 
 /**
- * Fetches EggCoop API data from a path
- * @param {string} path - path to fetch data from, starting with "/"
+ * Fetches data from the EggCoop API with proper path handling
+ * @param {string} path - Path to fetch data from (with or without "/api/" prefix)
  * @returns {Promise<Object>} Data fetched from the path
- * @throws {Error} If the fetch fails
+ * @throws {Error} If the path is invalid or the fetch fails
  */
 async function fetchEggCoopAPI(path) {
-	const params = {
-		method: "get",
-		headers: {
-			Accept: "application/json",
-		},
-	};
-	try {
-		const response = await fetch(eggCoopBaseURL + path, params);
-		return await response.json();
-	} catch (error) {
-		throw new Error(`Failed to fetch path: ${path}: ${error.message}`);
-	}
+    // Input validation
+    if (!path || path.trim().length === 0) {
+        throw new Error("Invalid API path: Path cannot be empty or undefined.");
+    }
+
+    // Normalize the path to ensure proper format
+    path = path.replace(/^\/?api\/?/, '/api/'); // Normalize "api/" to "/api/"
+    if (!path.startsWith('/api/')) {
+        path = '/api/' + path.replace(/^\/+/, ''); // Remove any leading slashes before appending
+    }
+
+    const url = eggCoopBaseURL + path;
+    const params = {
+        method: "get",
+        headers: {
+            Accept: "application/json",
+        },
+    };
+
+    try {
+        const response = await fetch(url, params);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        throw new Error(`Failed to fetch URL: ${url}: ${error.message}`);
+    }
 }
 
 /**
@@ -204,9 +219,10 @@ async function addBuffHistory(eggCoopCoop, delayMs = 100) {
 		// Process each contributor to add their buff history
 		for (let i = 0; i < eggCoopCoop.coopContributors.length; i++) {
 			const user = eggCoopCoop.coopContributors[i];
+			console.log(`\nFetching buff history for user ${user.userName}`);
 			let buffHistory = [];
 			try {
-				// Check if the contributor has a valid UUID
+				// Check if the contributor has a valid eiUuid
 				if (!user.eiUuid) {
 					console.warn(
 						"Contributor missing eiUuid, skipping buff history fetch."
