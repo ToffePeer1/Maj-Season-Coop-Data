@@ -261,21 +261,50 @@ function convertGrade(
 
 /**
  * Calculates the contribution factor based on the given contribution ratio.
- * 
+ *
  * @param {number} contributionRatio - The contribution ratio.
  * @return {number} The calculated contribution factor.
  */
 function calculateContributionFactor(contributionRatio) {
-    if (contributionRatio <= 2.5) {
-      return 3 * Math.pow(contributionRatio, 0.15) + 1;
-    } else {
-      return 0.02221 * Math.min(contributionRatio, 12.5) + 4.386486;
-    }
-  }
+	if (contributionRatio <= 2.5) {
+		return 3 * Math.pow(contributionRatio, 0.15) + 1;
+	} else {
+		return 0.02221 * Math.min(contributionRatio, 12.5) + 4.386486;
+	}
+}
+
+/**
+ * Creates a CLI progress bar
+ * @param {number} percent - Percentage complete (0-100)
+ * @param {number} width - Width of the progress bar in characters
+ * @returns {string} - Progress bar string
+ */
+function progressBar(percent, width = 30) {
+	const filled = Math.round(width * (percent / 100));
+	const empty = width - filled;
+	const bar = "█".repeat(filled) + "░".repeat(empty);
+	return `[${bar}] ${percent.toFixed(1)}%`;
+}
+
+/**
+ * Formats time in a human-readable format
+ * @param {number} seconds - Time in seconds
+ * @returns {string} - Formatted time string
+ */
+function formatTime(seconds) {
+	if (seconds < 60) return `${Math.round(seconds)}s`;
+	if (seconds < 3600)
+		return `${Math.floor(seconds / 60)}m ${Math.round(seconds % 60)}s`;
+	const hours = Math.floor(seconds / 3600);
+	const minutes = Math.floor((seconds % 3600) / 60);
+	return `${hours}h ${minutes}m`;
+}
 
 module.exports = {
 	getCoopDuration,
 	calculateBuffTimeValue,
-    convertGrade,
-    calculateContributionFactor
+	convertGrade,
+	calculateContributionFactor,
+	progressBar,
+	formatTime,
 };

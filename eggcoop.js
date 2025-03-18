@@ -24,34 +24,34 @@ async function getEggCoopContractsList() {
  * @throws {Error} If the path is invalid or the fetch fails
  */
 async function fetchEggCoopAPI(path) {
-    // Input validation
-    if (!path || path.trim().length === 0) {
-        throw new Error("Invalid API path: Path cannot be empty or undefined.");
-    }
+	// Input validation
+	if (!path || path.trim().length === 0) {
+		throw new Error("Invalid API path: Path cannot be empty or undefined.");
+	}
 
-    // Normalize the path to ensure proper format
-    path = path.replace(/^\/?api\/?/, '/api/'); // Normalize "api/" to "/api/"
-    if (!path.startsWith('/api/')) {
-        path = '/api/' + path.replace(/^\/+/, ''); // Remove any leading slashes before appending
-    }
+	// Normalize the path to ensure proper format
+	path = path.replace(/^\/?api\/?/, "/api/"); // Normalize "api/" to "/api/"
+	if (!path.startsWith("/api/")) {
+		path = "/api/" + path.replace(/^\/+/, ""); // Remove any leading slashes before appending
+	}
 
-    const url = eggCoopBaseURL + path;
-    const params = {
-        method: "get",
-        headers: {
-            Accept: "application/json",
-        },
-    };
+	const url = eggCoopBaseURL + path;
+	const params = {
+		method: "get",
+		headers: {
+			Accept: "application/json",
+		},
+	};
 
-    try {
-        const response = await fetch(url, params);
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        throw new Error(`Failed to fetch URL: ${url}: ${error.message}`);
-    }
+	try {
+		const response = await fetch(url, params);
+		if (!response.ok) {
+			throw new Error(`HTTP error! Status: ${response.status}`);
+		}
+		return await response.json();
+	} catch (error) {
+		throw new Error(`Failed to fetch URL: ${url}: ${error.message}`);
+	}
 }
 
 /**
@@ -133,27 +133,32 @@ async function getSeasonalContracts(
  * @returns {Promise<EggCoop.Coop>} The coop data with latest status
  * @throws {Error} If fetching the coop data fails
  */
-async function getEggCoopCoop(kevID, coopCode, includeBuffHistory = false, buffHistoryDelay = 100) {
-    const url = `/coops/${kevID}/${coopCode}/statuses/latest`;
-    try {
-        let coop = await fetchEggCoopAPI(url);
-        if (includeBuffHistory) {
-            coop = await addBuffHistory(coop, buffHistoryDelay);
-        }
-        return coop;
-    } catch (error) {
-        console.error(`Error fetching coop data: ${error.message}`);
-        return {
-            // In case of error return an empty yet still valid object.
-            status: "error",
-            message: error.message,
-            contract: kevID,
-            coop: coopCode,
-            contractIdentifier: kevID,
-            coopContributors: [],
-            totalAmount: 0,
-        };
-    }
+async function getEggCoopCoop(
+	kevID,
+	coopCode,
+	includeBuffHistory = false,
+	buffHistoryDelay = 100
+) {
+	const url = `/coops/${kevID}/${coopCode}/statuses/latest`;
+	try {
+		let coop = await fetchEggCoopAPI(url);
+		if (includeBuffHistory) {
+			coop = await addBuffHistory(coop, buffHistoryDelay);
+		}
+		return coop;
+	} catch (error) {
+		console.error(`Error fetching coop data: ${error.message}`);
+		return {
+			// In case of error return an empty yet still valid object.
+			status: "error",
+			message: error.message,
+			contract: kevID,
+			coop: coopCode,
+			contractIdentifier: kevID,
+			coopContributors: [],
+			totalAmount: 0,
+		};
+	}
 }
 
 /**
@@ -275,8 +280,6 @@ async function addBuffHistory(eggCoopCoop, delayMs = 100) {
 		return eggCoopCoop;
 	}
 }
-
-
 
 // Export the functions
 module.exports = {

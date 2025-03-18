@@ -10,6 +10,8 @@ const {
 	calculateBuffTimeValue,
 	getCoopDuration,
 	calculateContributionFactor,
+	progressBar,
+	formatTime,
 } = require("./tools");
 
 const { getMajCoops } = require("./maj");
@@ -31,33 +33,6 @@ const SAVE_INTERVAL = 50;
 const coopListPath = "./files/coopList.json";
 const contractListPath = "./files/contractList.json";
 const coopsPath = "./files/coops.json";
-
-/**
- * Creates a CLI progress bar
- * @param {number} percent - Percentage complete (0-100)
- * @param {number} width - Width of the progress bar in characters
- * @returns {string} - Progress bar string
- */
-function progressBar(percent, width = 30) {
-	const filled = Math.round(width * (percent / 100));
-	const empty = width - filled;
-	const bar = "█".repeat(filled) + "░".repeat(empty);
-	return `[${bar}] ${percent.toFixed(1)}%`;
-}
-
-/**
- * Formats time in a human-readable format
- * @param {number} seconds - Time in seconds
- * @returns {string} - Formatted time string
- */
-function formatTime(seconds) {
-	if (seconds < 60) return `${Math.round(seconds)}s`;
-	if (seconds < 3600)
-		return `${Math.floor(seconds / 60)}m ${Math.round(seconds % 60)}s`;
-	const hours = Math.floor(seconds / 3600);
-	const minutes = Math.floor((seconds % 3600) / 60);
-	return `${hours}h ${minutes}m`;
-}
 
 /**
  * Processes coops in controlled batches with rate limiting
@@ -248,6 +223,8 @@ async function processCoopsWithRateLimiting(
 	return processedCoops;
 }
 
+// Modify the part where the existing coops are read
+
 async function main() {
 	try {
 		// Get all contracts
@@ -271,10 +248,6 @@ async function main() {
 		const coops = await getMajCoops(seasonalKevIDs);
 		console.log(`Total contracts after filtering: ${coops.length}`);
 
-		// Log the list of unique kevIDs in coops, defined by coops[i].contract
-		const uniqueKevIDs = coops.map((coop) => coop.contract);
-		// console.log(`Unique kevIDs in coops:\n${JSON.stringify(uniqueKevIDs, null, 2)}`);
-
 		// Write the contracts to contractListPath
 		fs.writeFileSync(
 			contractListPath,
@@ -288,31 +261,42 @@ async function main() {
 
 		// Create or read the existing coops array
 		let existingCoops = [];
-		try {
-			// Check if the file exists and has valid content
-			if (fs.existsSync(coopsPath)) {
-				const fileContent = fs.readFileSync(coopsPath, "utf8");
-				if (fileContent.trim()) {
-					existingCoops = JSON.parse(fileContent);
-					console.log(
-						`Loaded ${existingCoops.length} existing coops from ${coopsPath}`
-					);
+
+		// Handle the clearCoopsFile option
+		if (clearCoopsFile) {
+			console.log(
+				`clearCoopsFile is set to true. Starting with an empty coops file.`
+			);
+
+			// Create an empty file if it doesn't exist or clear the existing one
+			fs.writeFileSync(coopsPath, JSON.stringify([], null, 2));
+		} else {
+			try {
+				// Check if the file exists and has valid content
+				if (fs.existsSync(coopsPath)) {
+					const fileContent = fs.readFileSync(coopsPath, "utf8");
+					if (fileContent.trim()) {
+						existingCoops = JSON.parse(fileContent);
+						console.log(
+							`Loaded ${existingCoops.length} existing coops from ${coopsPath}`
+						);
+					} else {
+						console.log(
+							`${coopsPath} exists but is empty. Starting with an empty array.`
+						);
+					}
 				} else {
 					console.log(
-						`${coopsPath} exists but is empty. Starting with an empty array.`
+						`${coopsPath} does not exist. Starting with an empty array.`
 					);
 				}
-			} else {
-				console.log(
-					`${coopsPath} does not exist. Starting with an empty array.`
+			} catch (error) {
+				console.error(
+					`Error reading existing coops from ${coopsPath}:`,
+					error
 				);
+				console.log("Starting with an empty array.");
 			}
-		} catch (error) {
-			console.error(
-				`Error reading existing coops from ${coopsPath}:`,
-				error
-			);
-			console.log("Starting with an empty array.");
 		}
 
 		// Process coops with rate limiting
