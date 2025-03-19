@@ -32,7 +32,7 @@ const seasonalContractsOnly = false;
 const clearCoopsFile = true;
 
 // Number of coops to process before writing to file
-const SAVE_INTERVAL = 50;
+const SAVE_INTERVAL = 500;
 
 const coopListPath = "./files/coopList.json";
 const contractListPath = "./files/contractList.json";
@@ -45,11 +45,11 @@ const coopsPath = "./files/coops.json";
  * @param {Array} seasonalContracts - Array of contract data
  * @param {Array} existingCoops - Array of already processed coops
  * @param {Object} options - Configuration options
- * @param {number} options.maxParallel - Maximum number of parallel requests (default: 3)
- * @param {number} options.requestDelay - Delay between requests in ms (default: 500)
- * @param {number} options.batchDelay - Delay between batches in ms (default: 2000)
+ * @param {number} options.maxParallel - Maximum number of parallel requests (default: 250)
+ * @param {number} options.requestDelay - Delay between requests in ms (default: 50)
+ * @param {number} options.batchDelay - Delay between batches in ms (default: 100)
  * @param {boolean} options.includeBuffHistory - Whether to fetch buff history for users (default: false)
- * @param {number} options.buffHistoryDelay - Delay between buff history requests in ms (default: 300)
+ * @param {number} options.buffHistoryDelay - Delay between buff history requests in ms (default: 0)
  * @returns {Promise<Array>} - Array of processed coop data
  */
 async function processCoopsWithRateLimiting(
@@ -59,11 +59,11 @@ async function processCoopsWithRateLimiting(
 	options = {}
 ) {
 	const {
-		maxParallel = 3,
-		requestDelay = 500,
-		batchDelay = 2000,
+		maxParallel = 250,
+		requestDelay = 50,
+		batchDelay = 100,
 		includeBuffHistory = true,
-		buffHistoryDelay = 300,
+		buffHistoryDelay =  0,
 	} = options;
 
 	console.log(`Starting to process coops with rate limiting:`);
@@ -231,10 +231,11 @@ async function processCoopsWithRateLimiting(
 	);
 
 	// Return the remaining processed coops that haven't been saved yet
-	return processedCoops;
+	return {
+		remainingProcessedCoops: processedCoops,
+		updatedExistingCoops: existingCoops,
+	};
 }
-
-// Modify the part where the existing coops are read
 
 async function main() {
 	try {
@@ -312,18 +313,15 @@ async function main() {
 		}
 
 		// Process coops with rate limiting
-		const remainingProcessedCoops = await processCoopsWithRateLimiting(
+		const result = await processCoopsWithRateLimiting(
 			coops,
 			seasonalContracts,
-			existingCoops,
-			{
-				maxParallel: 3, // Process 3 coops in parallel
-				requestDelay: 500, // 500ms staggered delay between requests in a batch
-				batchDelay: 2000, // 2 second delay between batches
-				includeBuffHistory: true, // Enable buff history fetching
-				buffHistoryDelay: 300, // 300ms delay between buff history requests
-			}
+			existingCoops
 		);
+
+		// Get the updated values
+		const { remainingProcessedCoops, updatedExistingCoops } = result;
+		existingCoops = updatedExistingCoops; // Update our reference to existing coops
 
 		// Save any remaining processed coops
 		if (remainingProcessedCoops.length > 0) {
@@ -595,7 +593,7 @@ async function handleCoop(eggCoopCoop, contract, majCoopCoop) {
 				console.error(
 					`Error processing user data for ${
 						user.userName || "unknown"
-					}:`,
+					} (eiUuid from eggcoop: ${user.eiUuid || "unknown"}):`,
 					userError
 				);
 

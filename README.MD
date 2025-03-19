@@ -92,21 +92,22 @@ Several performance metrics are calculated for each player:
 
 I've built in rate limiting to be respectful to the APIs, mainly EggCoop. Please respect these these services.
 
-You can adjust these settings in `index.js`:
+You can adjust these settings in `index.js`, with explanations in the JSDocs of the function:
 
 ```javascript
-const remainingProcessedCoops = await processCoopsWithRateLimiting(
-    coops,
-    seasonalContracts,
-    existingCoops,
-    {
-        maxParallel: 3, // Process 3 coops in parallel
-        requestDelay: 500, // 500ms staggered delay between requests in a batch
-        batchDelay: 2000, // 2 second delay between batches
-        includeBuffHistory: true, // Enable buff history fetching (makes one more EggCoop API call per player but essential for cs calculations.)
-        buffHistoryDelay: 300, // 300ms delay between buff history requests
-    }
-);
+async function processCoopsWithRateLimiting(
+	coops,
+	seasonalContracts,
+	existingCoops,
+	options = {}
+) {
+	const {
+		maxParallel = 250,
+		requestDelay = 50,
+		batchDelay = 100,
+		includeBuffHistory = true,
+		buffHistoryDelay =  0,
+	} = options;
 ```
 
 ## License

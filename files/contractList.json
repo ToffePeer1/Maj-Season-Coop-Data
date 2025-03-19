@@ -1565,5 +1565,37 @@
     "gradeSpecCollection": "/api/grade_spec_collections/f29f86e7-df6b-415e-9471-e9a80627f082",
     "uuid": "7341985b-5dca-4258-8a12-9cbbdb855995",
     "contractIdentifier": "early-easter-2025"
+  },
+  {
+    "startTime": "2025-03-19T17:00:00+01:00",
+    "expirationTime": "2025-03-26T17:00:00+01:00",
+    "lengthSeconds": 604800,
+    "name": "Quantum Payload",
+    "description": "(2021) With the recent boom in Artifacts exploration, quantum crates are in mass production!",
+    "egg": {
+      "eiIdentifier": "QUANTUM",
+      "name": "Quantum",
+      "value": 3000,
+      "uuid": "83c51760-4363-475b-b825-974305ef5f6a"
+    },
+    "leggacy": true,
+    "coopAllowed": true,
+    "maxCoopSize": 5,
+    "minutesPerToken": 30,
+    "chickenRunCooldownMinutes": 180,
+    "ultraOnly": false,
+    "season": {
+      "eiSeasonId": "",
+      "name": "All time",
+      "seasonOrder": 9999999,
+      "uuid": "70f301a3-f10e-48fb-b770-8cd25ca71690"
+    },
+    "maxBoosts": 0,
+    "maxSoulEggs": 0,
+    "goalCollection": "/api/goal_collections/8a16c00c-7cee-41e1-be69-4209e688922a",
+    "goalSetCollection": "/api/goal_set_collections/a186edcd-27b9-4257-873b-02fc2240bcb8",
+    "gradeSpecCollection": "/api/grade_spec_collections/2185a146-d218-4284-9502-7594c3ad87af",
+    "uuid": "446bd6bb-28fb-4cc0-9cf5-32fdc800c8ef",
+    "contractIdentifier": "quantum-payload-2021"
   }
 ]
