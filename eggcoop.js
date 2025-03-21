@@ -63,7 +63,7 @@ async function fetchEggCoopAPI(path) {
  * @returns {Promise<EggCoop.Contract[]>} Array of contracts between the specified seasons
  * @throws {Error} If fetching the contracts fails
  */
-async function getSeasonalContracts(
+async function getSeasonContracts(
 	startSeasonId,
 	endSeasonId,
 	seasonalOnly = false,
@@ -291,7 +291,7 @@ async function addBuffHistory(eggCoopCoop, delayMs = 100) {
 // Export the functions
 module.exports = {
 	getEggCoopContractsList,
-	getSeasonalContracts,
+	getSeasonContracts,
 	fetchEggCoopAPI,
 	getEggCoopCoop,
 	addGradeSpecs,

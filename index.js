@@ -1,6 +1,6 @@
 const {
 	getEggCoopContractsList,
-	getSeasonalContracts,
+	getSeasonContracts,
 	fetchEggCoopAPI,
 	addGradeSpecs,
 	getEggCoopCoop,
@@ -244,7 +244,7 @@ async function main() {
 		console.log(`Total contracts: ${allContracts.length}`);
 
 		// Get seasonal contracts
-		const seasonalContracts = await getSeasonalContracts(
+		const seasonalContracts = await getSeasonContracts(
 			startingSeason,
 			endingSeason,
 			seasonalContractsOnly,
