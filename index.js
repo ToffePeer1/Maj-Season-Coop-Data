@@ -1,7 +1,6 @@
 const {
 	getEggCoopContractsList,
-	getSeasonContracts,
-	fetchEggCoopAPI,
+	getContractsByDate,
 	addGradeSpecs,
 	getEggCoopCoop,
 } = require("./eggcoop");
@@ -20,16 +19,15 @@ const fs = require("fs");
 require("dotenv").config();
 
 // Define these two variables to filter the contracts
-// The starting season is inclusive, the ending season is exclusive
-// If no occurrence of endingSeason is found, every contract after startingSeason is used
-const startingSeason = "winter_2025";
-const endingSeason = "spring_2025";
+// Both dates are inclusive
+const startingDate = new Date("2025-03-23");
+const endingDate = new Date("2025-04-12");
 
-// False means all contracts are included, true means only seasonal contracts are included
-const seasonalContractsOnly = false;
+// If you only want contracts with a certain season between those dates, set this to the season id (e.g. "winter_2025")
+const seasonId = null;
 
 // Whether or not to clear the coops file before writing new coops
-const clearCoopsFile = true;
+const clearCoopsFile = false;
 
 // Number of coops to process before writing to file
 const SAVE_INTERVAL = 500;
@@ -59,9 +57,9 @@ async function processCoopsWithRateLimiting(
 	options = {}
 ) {
 	const {
-		maxParallel = 250,
+		maxParallel = 400,
 		requestDelay = 50,
-		batchDelay = 100,
+		batchDelay = 50,
 		includeBuffHistory = true,
 		buffHistoryDelay =  0,
 	} = options;
@@ -244,14 +242,14 @@ async function main() {
 		console.log(`Total contracts: ${allContracts.length}`);
 
 		// Get seasonal contracts
-		const seasonalContracts = await getSeasonContracts(
-			startingSeason,
-			endingSeason,
-			seasonalContractsOnly,
+		const seasonalContracts = await getContractsByDate(
+			startingDate,
+			endingDate,
+			seasonId,
 			true
 		);
 		console.log(
-			`${startingSeason} to ${endingSeason} contracts: ${seasonalContracts.length}`
+			`${startingDate} to ${endingDate} contracts: ${seasonalContracts.length}`
 		);
 
 		const seasonalKevIDs = seasonalContracts.map(
@@ -581,6 +579,9 @@ async function handleCoop(eggCoopCoop, contract, majCoopCoop) {
 					contributionFactor,
 					completionTimeBonus,
 					timeToCompleteFactor,
+					contractFarmMaximumTimeAllowedSeconds,
+					contractMainGoal,
+					coopDurationSeconds,
 					greenScroll,
 					buffHistory,
 					buffValue,

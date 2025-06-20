@@ -53,6 +53,80 @@ async function fetchEggCoopAPI(path) {
 		throw new Error(`Failed to fetch URL: ${url}: ${error.message}`);
 	}
 }
+/**
+ * Gets contracts between two dates
+ * @param {Date|string} startDate - Start date to filter contracts (inclusive)
+ * @param {Date|string} endDate - End date to filter contracts (inclusive)
+ * @param {string} [seasonId=null] - If left empty, all contracts between the dates are returned. If specified, only contracts with the entered season ID are returned.
+ * @param {boolean} [verbose=false] - Whether to log info to console
+ * @returns {Promise<EggCoop.Contract[]>} Array of contracts between the specified dates
+ * @throws {Error} If fetching the contracts fails or if date parameters are invalid
+ */
+async function getContractsByDate(
+	startDate,
+	endDate,
+	seasonId = null,
+	verbose = false
+) {
+	// Validate and convert date parameters
+	const start = startDate instanceof Date ? startDate : new Date(startDate);
+	const end = endDate instanceof Date ? endDate : new Date(endDate);
+
+	// Validate date conversion was successful
+	if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+		throw new Error("Invalid date format provided");
+	}
+
+	// Set end time to the end of the day to make the end date inclusive
+	end.setHours(23, 59, 59, 999);
+
+	if (verbose) {
+		console.log(
+			`Filtering contracts between: ${start.toISOString()} and ${end.toISOString()}`
+		);
+	}
+
+	const sortedContracts = await getEggCoopContractsList();
+	const filteredContracts = [];
+
+	// Filter contracts that start within the date range
+	for (const contract of sortedContracts) {
+		const contractStartTime = new Date(contract.startTime);
+
+		// Check if contract starts within our date range (inclusive on both ends)
+		if (contractStartTime >= start && contractStartTime <= end) {
+			if (seasonId && !!contract.season) {
+				if (contract.season.eiSeasonId === seasonId) {
+					filteredContracts.push(contract);
+				}
+			} else {
+				filteredContracts.push(contract);
+			}
+		}
+	}
+
+	if (verbose) {
+		console.log(
+			`Found ${filteredContracts.length} contracts within date range`
+		);
+		if (filteredContracts.length > 0) {
+			console.log(
+				`First filtered contract: ${filteredContracts[0].contractIdentifier}, starts at ${filteredContracts[0].startTime}`
+			);
+			console.log(
+				`Last filtered contract: ${
+					filteredContracts[filteredContracts.length - 1]
+						.contractIdentifier
+				}, starts at ${
+					filteredContracts[filteredContracts.length - 1].startTime
+				}`
+			);
+		}
+	}
+
+	return filteredContracts;
+}
+
 
 /**
  * Gets contracts between two seasons
@@ -77,19 +151,28 @@ async function getSeasonContracts(
 
 	// Find the time boundaries from the seasonal contracts
 	for (const contract of sortedContracts) {
-		// Find start time from first start season contract
-		if (contract.season.eiSeasonId === startSeasonId && !seasonStartTime) {
-			seasonStartTime = new Date(contract.startTime);
-			if (verbose)
-				console.log(`Found ${startSeasonId} start: ${seasonStartTime}`);
-		}
+		try {
+			// Find start time from first start season contract
+			if (
+				contract.season.eiSeasonId === startSeasonId &&
+				!seasonStartTime
+			) {
+				seasonStartTime = new Date(contract.startTime);
+				if (verbose)
+					console.log(
+						`Found ${startSeasonId} start: ${seasonStartTime}`
+					);
+			}
 
-		// Find end time from first end season contract
-		if (contract.season.eiSeasonId === endSeasonId && !seasonEndTime) {
-			seasonEndTime = new Date(contract.endTime);
-			if (verbose)
-				console.log(`Found ${endSeasonId} end: ${seasonEndTime}`);
-			break;
+			// Find end time from first end season contract
+			if (contract.season.eiSeasonId === endSeasonId && !seasonEndTime) {
+				seasonEndTime = new Date(contract.endTime);
+				if (verbose)
+					console.log(`Found ${endSeasonId} end: ${seasonEndTime}`);
+				break;
+			}
+		} catch (error) {
+			console.log(contract);
 		}
 	}
 
@@ -113,13 +196,19 @@ async function getSeasonContracts(
 	}
 
 	if (verbose) {
-		console.log(`Found ${seasonalContracts.length}${seasonalOnly? " seasonal" : ""} contracts`);
+		console.log(
+			`Found ${seasonalContracts.length}${
+				seasonalOnly ? " seasonal" : ""
+			} contracts`
+		);
 		if (seasonalContracts.length > 0) {
 			console.log(
-				`First${seasonalOnly? " seasonal" : ""} contract: ${seasonalContracts[0].contractIdentifier}, starts at ${seasonalContracts[0].startTime}`
+				`First${seasonalOnly ? " seasonal" : ""} contract: ${
+					seasonalContracts[0].contractIdentifier
+				}, starts at ${seasonalContracts[0].startTime}`
 			);
 			console.log(
-				`Last${seasonalOnly? " seasonal" : ""} contract: ${
+				`Last${seasonalOnly ? " seasonal" : ""} contract: ${
 					seasonalContracts[seasonalContracts.length - 1]
 						.contractIdentifier
 				}, starts at ${
@@ -291,7 +380,7 @@ async function addBuffHistory(eggCoopCoop, delayMs = 100) {
 // Export the functions
 module.exports = {
 	getEggCoopContractsList,
-	getSeasonContracts,
+	getContractsByDate,
 	fetchEggCoopAPI,
 	getEggCoopCoop,
 	addGradeSpecs,
