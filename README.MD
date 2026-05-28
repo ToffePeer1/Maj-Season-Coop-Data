@@ -1,3 +1,7 @@
+# DEPRECATED
+
+This repository was never updated for the v2 version of the eggcoop API, and I have since not felt the need to update it.
+
 # Egg Inc Contract Analyzer
 
 This tool helps me collect and analyze performance data from Egg Inc contracts and coops. I built it to track player contributions, calculate scoring metrics, and analyze (seasonal) contracts from the game.
